@@ -29,6 +29,17 @@ export default function Book({ handleChangeEditMode, data }: IBookProps) {
     deleteBookMutation.mutate(data.id)
   }
 
+  const isBase64 = (str: string) => {
+    if (str === '' || str.trim() === '') {
+      return false
+    }
+    try {
+      return btoa(atob(str)) === str
+    } catch (err) {
+      return false
+    }
+  }
+
   return (
     <div className='relative border max-h-[90%] w-fit rounded-lg'>
       <div className='grid items-start gap-2 justify-center'>
@@ -36,12 +47,15 @@ export default function Book({ handleChangeEditMode, data }: IBookProps) {
           <img
             alt=''
             className='rounded-lg w-[175px] max-w-[175px] object-cover hover:scale-110 transition duration-200'
-            src='https://i.docln.net/lightnovel/covers/s9193-28267b79-2581-420f-be87-d3cb0ea0f46d-m.jpg'
+            src={`${
+              data.image && isBase64(data.image)
+                ? `data:image;base64,${data.image}`
+                : 'https://i.docln.net/lightnovel/covers/s9193-28267b79-2581-420f-be87-d3cb0ea0f46d-m.jpg'
+            }`}
           />
         </div>
 
         <div className='px-2 py-1'>
-          <h2 className='text-lg font-semibold'>{data.image}</h2>
           <p className='text-sm text-gray-500'>Name: {data.name}</p>
           <p className='text-sm text-gray-500'>Author: {data.author}</p>
           <p className='text-sm text-gray-500'>Pages: {data.pages}</p>

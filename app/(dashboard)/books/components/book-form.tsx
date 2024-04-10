@@ -1,5 +1,6 @@
 'use client'
 import { addBookApi, updateBookApi } from '@/api/books.api'
+import { uploadImageApi } from '@/api/medias.api'
 import Input from '@/components/input'
 import { IAddBookBody, IBookEditMode, IBookResponse } from '@/interfaces/books.interface'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
@@ -12,6 +13,7 @@ interface BookFormProps {
 
 export default function BookForm({ isEditMode, handleChangeEditMode }: BookFormProps) {
   const [addBookForm, setAddBookForm] = useState<IAddBookBody | null>(null)
+  const [imageFile, setImageFile] = useState<File | null>(null)
   const queryClient = useQueryClient()
 
   const addBookMutation = useMutation({
@@ -33,6 +35,10 @@ export default function BookForm({ isEditMode, handleChangeEditMode }: BookFormP
     }
   })
 
+  const uploadImageMutation = useMutation({
+    mutationFn: (body: File) => uploadImageApi(body)
+  })
+
   useEffect(() => {
     if (isEditMode.state) {
       setAddBookForm(isEditMode.data as IAddBookBody)
@@ -50,21 +56,24 @@ export default function BookForm({ isEditMode, handleChangeEditMode }: BookFormP
 
   const handleChangeFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      setAddBookForm({
-        ...addBookForm,
-        image: e.target.files[0]
-      } as IAddBookBody)
+      setImageFile(e.target.files[0])
     }
   }
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
     if (addBookForm) {
       if (!isEditMode.state) {
         // add book
-        addBookMutation.mutate({
+        let imageBase64: string | undefined
+        if (imageFile) {
+          const { data } = await uploadImageMutation.mutateAsync(imageFile)
+          imageBase64 = data.base64
+        }
+        await addBookMutation.mutateAsync({
           ...addBookForm,
+          image: imageBase64,
           pages: +addBookForm.pages
         })
       } else {

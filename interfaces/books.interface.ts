@@ -3,7 +3,7 @@ export interface IAddBookBody {
   name: string
   author: string
   pages: number
-  image?: File
+  image?: string
 }
 
 export interface IBookResponse {
